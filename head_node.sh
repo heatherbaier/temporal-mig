@@ -11,4 +11,4 @@ module load anaconda3/2021.05
 unsetenv PYTHONPATH
 conda activate dhsrl4
 
-torchrun --nnodes=$NUMNODES --nproc_per_node=12 --rdzv_id=790876 --rdzv_backend=c10d /sciclone/home20/hmbaier/tm/run.py
+torchrun --nnodes=$NUMNODES --nproc_per_node=$PPN --rdzv_id=790876 --rdzv_backend=c10d /sciclone/home20/hmbaier/tm/run.py
