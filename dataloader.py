@@ -42,7 +42,7 @@ class Dataloader():
 
     def load_data(self):
 
-        for ncf in self.munis[0:1]:
+        for ncf in self.munis[0:2]:
             print(os.path.join(self.imagery_dir, ncf))
             ds = nc.Dataset(os.path.join(self.imagery_dir, ncf), "r")
             ims, migs = ds["ims"][0:1], ds["migrants"][0:1]

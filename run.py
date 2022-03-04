@@ -77,7 +77,8 @@ def main(rank, world_size, model_group):
 
         df = remote_method(Evaluator.collect_losses, eval_rref, train_tracker.avg, epoch)
 
-    rpc.shutdown()
+    # """ whoop whoop """
+    # rpc.shutdown()
 
 
 if __name__ == "__main__":

@@ -92,15 +92,18 @@ class Evaluator:
         train = True 
 
         if epoch in self.epoch_tracker.keys():
-            self.epoch_tracker[epoch].update(loss.item())
+            self.epoch_tracker[epoch].update(loss)
+            
             # print("NUM IN EPOCH TRACKER: ", self.epoch_tracker[epoch].count, " out of ", self.num_train)
+            
             if self.epoch_tracker[epoch].count == self.num_train:
                 print("EPOCH: ", str(epoch), str(self.epoch_tracker[epoch].avg))
                 with open(config.log_name, "a") as f:
-                    f.write("EPOCH: " + str(epoch) + str(self.epoch_tracker[epoch].avg) + "\n")    
+                    f.write("EPOCH: " + str(epoch) + str(self.epoch_tracker[epoch].avg) + "\n")   
+
         else:
             self.epoch_tracker[epoch] = AverageMeter()
-            self.epoch_tracker[epoch].update(loss.item())
+            self.epoch_tracker[epoch].update(loss)
             # print(self.epoch_tracker[epoch])
 
         with open(config.log_name, "a") as f:
