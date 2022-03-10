@@ -48,6 +48,14 @@ training_args.add_argument("--lr",
                            type = float, 
                            default = .01, 
                            help = "Learning Rate")
+training_args.add_argument("---ppn", 
+                           type = float, 
+                           default = 32, 
+                           help = "Learning Rate")
+training_args.add_argument("--ppn_usable", 
+                           type = float, 
+                           default = 32, 
+                           help = "Learning Rate")
 
 
 env_args = add_argument_group("RL Environment Arguments")
@@ -79,28 +87,28 @@ model_args.add_argument("--lc_fc_size",
 data_args = add_argument_group("Data Arguments")
 data_args.add_argument("--imagery_dir",
                       type = str,
-                      default = "/sciclone/geograd/Heather/mex_imagery/",
+                      default = "/sciclone/scr-mlt/hmbaier/cropped/",
                       help = "Full path to directory containing imagery")
-data_args.add_argument("--lc_dir",
-                      type = str,
-                      default = "/sciclone/geograd/Heather/lc/extracted_100m/",
-                      help = "Full path to land cover tiff file directory")
-data_args.add_argument("--y_path",
-                      type = str,
-                      default = "/sciclone/home20/hmbaier/claw/migration_data.json",
-                      help = "Full path to json containing muni_id -> num_migrants mapping.")
-data_args.add_argument("--census_path",
-                      type = str,
-                      default = "/sciclone/geograd/Heather/lc/census_feats,json",
-                      help = "Full path to json containing muni_id -> census features mapping.")
-data_args.add_argument("--lc_path",
-                      type = str,
-                      default = "/sciclone/geograd/Heather/lc/lc_feats.json",
-                      help = "Full path to json containing muni_id -> land cover features mapping.")
-data_args.add_argument("--lc_map",
-                      type = str,
-                      default = "/sciclone/geograd/Heather/lc/lc_map.json",
-                      help = "Full path to json containing lc_id -> land cover type mapping.")
+# data_args.add_argument("--lc_dir",
+#                       type = str,
+#                       default = "/sciclone/geograd/Heather/lc/extracted_100m/",
+#                       help = "Full path to land cover tiff file directory")
+# data_args.add_argument("--y_path",
+#                       type = str,
+#                       default = "/sciclone/home20/hmbaier/claw/migration_data.json",
+#                       help = "Full path to json containing muni_id -> num_migrants mapping.")
+# data_args.add_argument("--census_path",
+#                       type = str,
+#                       default = "/sciclone/geograd/Heather/lc/census_feats,json",
+#                       help = "Full path to json containing muni_id -> census features mapping.")
+# data_args.add_argument("--lc_path",
+#                       type = str,
+#                       default = "/sciclone/geograd/Heather/lc/lc_feats.json",
+#                       help = "Full path to json containing muni_id -> land cover features mapping.")
+# data_args.add_argument("--lc_map",
+#                       type = str,
+#                       default = "/sciclone/geograd/Heather/lc/lc_map.json",
+#                       help = "Full path to json containing lc_id -> land cover type mapping.")
 
 now = datetime.now()
 
@@ -129,6 +137,11 @@ misc_args.add_argument("--records_dir",
                       type = str,
                       default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/",
                       help = "Path to save epoch records too")
+misc_args.add_argument("--epochs_dir",
+                      type = str,
+                      default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/epochs/",
+                      help = "Path to save epoch records too")
+
 
 
 # glimpse network params
@@ -208,7 +221,7 @@ train_arg.add_argument(
     "--momentum", type=float, default=0.5, help="Nesterov momentum value"
 )
 train_arg.add_argument(
-    "--epochs", type=int, default = 200, help="# of epochs to train for"
+    "--epochs", type=int, default = 10, help="# of epochs to train for"
 )
 train_arg.add_argument(
     "--init_lr", type=float, default=3e-4, help="Initial learning rate value"

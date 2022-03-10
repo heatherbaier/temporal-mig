@@ -22,6 +22,3 @@ for ((i = 1; i <= $1-1; i++))
 do
   qsub workers.sh -l nodes=1:$2:ppn=$3 -v IP_ADDRESS=$value,NUMNODES=$1,PPN=$3
 done
-
-
-
