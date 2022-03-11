@@ -76,26 +76,23 @@ def load_ddp_state(model, ddp_model):
 @record
 def main(rank, world_size, model_group):
 
+    print("RANK IN MAIN: ", rank, "\n")
+
     ######################################################
     # Load rank data
     ######################################################    
     munis = get_munis(rank, world_size)
-
-    # with open(config.log_name, "a") as f:
-    #     f.write("MUNIS: " + str(munis) + "  RANK: " + str(rank) + "\n")
 
     data = Dataloader(munis, "/sciclone/geograd/heather_data/netCDFs/", rank)
 
     with open(config.log_name, "a") as f:
         f.write(str('Done with dataloader in rank: ') + str(rank) + "\n")  
 
-    # print('Done with dataloader in rank: ', rank)
-
     ######################################################
     # Set up DDP model and model utilities
     ######################################################    
 
-    model = models.resnet18()
+    model = models.resnet18(pretrained = True)
     model.fc = torch.nn.Linear(512, 1)
     ddp_model = DDP(model, process_group = model_group)
 
@@ -104,6 +101,8 @@ def main(rank, world_size, model_group):
 
     with open(config.log_name, "a") as f:
         f.write(str('Done with model setup in rank: ') + str(rank) + "\n")
+
+    model_group.barrier()
 
     for epoch in range(0, config.epochs):
 
@@ -126,8 +125,6 @@ def main(rank, world_size, model_group):
 
             loss.backward()
             optimizer.step()
-
-            # print("Done with iteration in epoch ", epoch)
 
         if config.use_rpc:
             df = remote_method(Evaluator.collect_losses, eval_rref, train_tracker.avg, epoch)
@@ -222,7 +219,9 @@ if __name__ == "__main__":
     # only the ranks above 0 that actually participate in training
     ###########################################################################
     workers = get_workers(dist.get_rank(), dist.get_world_size())
-    model_group = dist.new_group(ranks = workers)    
+    model_group = dist.new_group(ranks = [i for i in range(1, int(os.environ["WORLD_SIZE"]))][0:141] )    
+
+    print("MODEL GROUP RANK: ", dist.get_rank(), model_group)
 
     # model_group = dist.new_group(ranks = [i for i in range(1, int(os.environ['WORLD_SIZE']))])    
 
@@ -238,9 +237,9 @@ if __name__ == "__main__":
     ###########################################################################
     # Run the trainer on every rank but 0
     ###########################################################################
-    if dist.get_rank() != 0:
+    if dist.get_rank() in [i for i in range(1, 142)]:
         main(int(os.environ["RANK"]), int(os.environ['WORLD_SIZE']), model_group)
-    elif dist.get_rank() in workers:
+    elif dist.get_rank() == 0:
         run_averager(int(os.environ['WORLD_SIZE']))
     else:
         pass
