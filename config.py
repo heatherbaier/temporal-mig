@@ -22,7 +22,7 @@ training_args = add_argument_group("Training Arguments")
 #                            help = "batch size is equivalent to number of process to run asychronously / nodes * ppn")
 training_args.add_argument("--tv_split", 
                            type = float, 
-                           default = .75, 
+                           default = 0.5, 
                            help = "Train/Val split percentage - given as a float i.e. .75")
 training_args.add_argument("--num_epochs", 
                            type = int, 
@@ -48,15 +48,18 @@ training_args.add_argument("--lr",
                            type = float, 
                            default = .01, 
                            help = "Learning Rate")
-training_args.add_argument("---ppn", 
+training_args.add_argument("--ppn", 
                            type = float, 
-                           default = 32, 
+                           default = 16, 
                            help = "Learning Rate")
 training_args.add_argument("--ppn_usable", 
                            type = float, 
                            default = 32, 
                            help = "Learning Rate")
-
+training_args.add_argument("--nodes", 
+                           type = float, 
+                           default = 20, 
+                           help = "Learning Rate")
 
 env_args = add_argument_group("RL Environment Arguments")
 env_args.add_argument("--display", 
@@ -141,7 +144,10 @@ misc_args.add_argument("--epochs_dir",
                       type = str,
                       default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/epochs/",
                       help = "Path to save epoch records too")
-
+misc_args.add_argument("--models_dir",
+                      type = str,
+                      default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/models/",
+                      help = "Path to save trained_models too")
 
 
 # glimpse network params

@@ -19,8 +19,92 @@ from config import get_config
 config, _ = get_config()
 
 
+import heapq
+import os
+
+
+@record
+def sort_by_size(munis, imagery_dir):
+    """
+    Sort images by size, highest to lowest, but keep the name of the images
+    """
+    munis = [imagery_dir + i for i in munis]
+    munis = sorted(munis, key =  lambda x: os.stat(x).st_size)
+    munis.reverse()
+    return munis
+
+@record
+def sublist_creator(lst, n):
+    """
+    Split the sorted file list into n lists of equal sums
+    """
+    lists = [[] for _ in range(n)]
+    totals = [(0, i) for i in range(n)]
+    heapq.heapify(totals)
+    for value in lst:
+        total, index = heapq.heappop(totals)
+        lists[index].append(value)
+        heapq.heappush(totals, (total + value, index))
+    return lists
+
+@record
+def make_worker_list(files_lists, ppn):
+    """
+    Get the list of workers based on the number of files to each node
+    """
+    workers = []
+    for c, (i) in enumerate(files_lists):
+        for j in range(0, len(i)):
+            workers.append(j + (ppn * c))
+    return workers
+
+@record
+def reverse_size(files_lists, size_dict):
+    """
+    Make a new imagery list 
+    """
+    image_list = []
+    for j in files_lists:
+        for i in j:
+            image_list.append(size_dict[i])
+    return image_list
+
+
+
+
+
+@record
+def organize_data(base_dir, ppn, nodes):
+    
+    # Get a list of the municipalities
+    munis = os.listdir(base_dir)
+    munis = [i for i in munis if i.startswith("484")]
+        
+    # Sort the municipalities from biggest to smallest size
+    munis = sorted(munis, key =  lambda x: os.stat(base_dir + x).st_size)
+    
+    # Make a dictionary with the image sizes as keys and image names as values
+    size_dict = {}
+    for x in munis:
+        size_dict[os.stat(base_dir + x).st_size] = base_dir + x
+                    
+    # Change the munis list to be image sizes then reverse it
+    munis = [os.stat(base_dir + x).st_size for x in munis]
+    munis.reverse()
+        
+    files_lists = sublist_creator(munis, nodes)
+    workers = make_worker_list(files_lists, ppn)
+    image_list = reverse_size(files_lists, size_dict)
+        
+    return image_list, workers
+    
+
+
 @record
 def run_averager(world_size):
+
+    with open(config.log_name, "a") as f:
+        f.write(str('Setting up averager! On rank: ') + str(dist.get_rank()) + "\n")      
 
     cur_epoch = 0
 
@@ -74,19 +158,21 @@ def load_ddp_state(model, ddp_model):
         k = ddp_model.state_dict()[ddp_key]
 
 @record
-def main(rank, world_size, model_group):
+def main(rank, world_size, model_group, imagery_list, worker_map):
 
-    print("RANK IN MAIN: ", rank, "\n")
+    # print("RANK IN MAIN: ", rank, "\n")
 
     ######################################################
     # Load rank data
     ######################################################    
-    munis = get_munis(rank, world_size)
+    munis = get_munis(imagery_list, rank, worker_map)
 
-    data = Dataloader(munis, "/sciclone/geograd/heather_data/netCDFs/", rank)
+    data = Dataloader(munis, config.imagery_dir, rank)
 
     with open(config.log_name, "a") as f:
         f.write(str('Done with dataloader in rank: ') + str(rank) + "\n")  
+
+    model_group.barrier()
 
     ######################################################
     # Set up DDP model and model utilities
@@ -123,16 +209,27 @@ def main(rank, world_size, model_group):
             loss = criterion(output, target)
             train_tracker.update(loss.item())
 
+            if config.use_rpc:
+                df = remote_method(Evaluator.collect_losses, eval_rref, train_tracker.avg, epoch)
+            else:
+                epoch_folder = os.path.join(config.records_dir, "epochs", "train" + str(epoch))
+                fname = f"{epoch_folder}/{str(rank)}.txt"
+                with open(fname, "w") as f:
+                    f.write(str(train_tracker.avg))
+
             loss.backward()
             optimizer.step()
 
-        if config.use_rpc:
-            df = remote_method(Evaluator.collect_losses, eval_rref, train_tracker.avg, epoch)
-        else:
-            epoch_folder = os.path.join(config.records_dir, "epochs", "train" + str(epoch))
-            fname = f"{epoch_folder}/{str(rank)}.txt"
-            with open(fname, "w") as f:
-                f.write(str(train_tracker.avg))
+        if rank == 1:
+
+            mname = config.models_dir + "model_epoch" + str(epoch) + ".torch"
+
+            torch.save({
+                        'epoch': epoch,
+                        'model_state_dict': ddp_model.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'loss': criterion,
+                    },  mname)
 
 
         ######################################################
@@ -157,7 +254,6 @@ def main(rank, world_size, model_group):
             fname = f"{epoch_folder}/{str(rank)}.txt"
             with open(fname, "w") as f:
                 f.write(str(train_tracker.avg))
-
 
 
 def get_workers(rank, world_size):
@@ -203,6 +299,12 @@ if __name__ == "__main__":
     ###########################################################################
     dist.init_process_group(backend = "gloo", timeout = datetime.timedelta(0, 5000))
 
+
+    # ppn = 32   
+    # nodes = 20
+    # imagery_dir = "../../heather_data/cropped/"    
+
+
     ###########################################################################
     # Make the folder for the run's stats & log files
     ###########################################################################
@@ -212,16 +314,27 @@ if __name__ == "__main__":
         for i in range(config.epochs):
             os.mkdir(os.path.join(config.records_dir, "epochs", str(i)))    
 
+
+    imagery_list, workers = organize_data(config.imagery_dir, config.ppn, config.nodes)
+    worker_map = {w:i for w,i in zip(workers, [i for i in range(len(workers))])}
+
+
+    if dist.get_rank() == 0:
+
+        print(imagery_list)
+
+        print(workers)
+
     ###########################################################################
     # 2) Initialize a second group because Rank 0's only job is to aggregate 
     # losses and print updates, therefore, it does not particiapte in training 
     # which means we have to create a second process group that contains 
     # only the ranks above 0 that actually participate in training
     ###########################################################################
-    workers = get_workers(dist.get_rank(), dist.get_world_size())
-    model_group = dist.new_group(ranks = [i for i in range(1, int(os.environ["WORLD_SIZE"]))][0:141] )    
+    # workers = get_workers(dist.get_rank(), dist.get_world_size())
+    model_group = dist.new_group(ranks = workers, timeout = datetime.timedelta(0, 5000))    
 
-    print("MODEL GROUP RANK: ", dist.get_rank(), model_group)
+    # print("MODEL GROUP RANK: ", dist.get_rank(), model_group)
 
     # model_group = dist.new_group(ranks = [i for i in range(1, int(os.environ['WORLD_SIZE']))])    
 
@@ -236,10 +349,11 @@ if __name__ == "__main__":
 
     ###########################################################################
     # Run the trainer on every rank but 0
-    ###########################################################################
-    if dist.get_rank() in [i for i in range(1, 142)]:
-        main(int(os.environ["RANK"]), int(os.environ['WORLD_SIZE']), model_group)
-    elif dist.get_rank() == 0:
+    ########################################################################### 
+    last_rank = int(os.environ['WORLD_SIZE']) - 1
+    if dist.get_rank() in workers:
+        main(int(os.environ["RANK"]), int(os.environ['WORLD_SIZE']), model_group, imagery_list, worker_map)
+    elif dist.get_rank() == last_rank:
         run_averager(int(os.environ['WORLD_SIZE']))
     else:
         pass

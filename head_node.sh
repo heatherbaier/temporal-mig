@@ -1,6 +1,6 @@
 #!/bin/tcsh
 #PBS -N head_node
-#PBS -l walltime=00:15:00
+#PBS -l walltime=24:00:00
 #PBS -j oe
 
 hostname -i > /sciclone/home20/hmbaier/tm/here.txt

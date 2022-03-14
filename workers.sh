@@ -1,6 +1,6 @@
 #!/bin/tcsh
 #PBS -N worker
-#PBS -l walltime=00:15:00
+#PBS -l walltime=24:00:00
 #PBS -j oe
 
 # init conda within new shell for job
