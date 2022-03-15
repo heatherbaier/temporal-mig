@@ -22,7 +22,7 @@ training_args = add_argument_group("Training Arguments")
 #                            help = "batch size is equivalent to number of process to run asychronously / nodes * ppn")
 training_args.add_argument("--tv_split", 
                            type = float, 
-                           default = 0.5, 
+                           default = 0.6, 
                            help = "Train/Val split percentage - given as a float i.e. .75")
 training_args.add_argument("--num_epochs", 
                            type = int, 
@@ -48,18 +48,7 @@ training_args.add_argument("--lr",
                            type = float, 
                            default = .01, 
                            help = "Learning Rate")
-training_args.add_argument("--ppn", 
-                           type = float, 
-                           default = 16, 
-                           help = "Learning Rate")
-training_args.add_argument("--ppn_usable", 
-                           type = float, 
-                           default = 32, 
-                           help = "Learning Rate")
-training_args.add_argument("--nodes", 
-                           type = float, 
-                           default = 20, 
-                           help = "Learning Rate")
+
 
 env_args = add_argument_group("RL Environment Arguments")
 env_args.add_argument("--display", 
@@ -113,20 +102,23 @@ data_args.add_argument("--imagery_dir",
 #                       default = "/sciclone/geograd/Heather/lc/lc_map.json",
 #                       help = "Full path to json containing lc_id -> land cover type mapping.")
 
-now = datetime.now()
+
+with open("/sciclone/home20/hmbaier/tm/date.txt", "r") as f:
+    now = f.read().strip("\n")
+
 
 misc_args = add_argument_group("Miscellaneous Arguments")
 misc_args.add_argument("--log_name",
                       type = str,
-                      default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/log (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ").txt",
+                      default = "/sciclone/home20/hmbaier/tm/records/records (" + now + ")/log (" + now + ").txt",
                       help = "Full path to directory containing imagery")
 misc_args.add_argument("--train_records_name",
                       type = str,
-                      default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/train_records_epoch{epoch} (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ").txt",
+                      default = "/sciclone/home20/hmbaier/tm/records/records (" + now + ")/train_records_epoch{epoch} (" + now + ").txt",
                       help = "Full path to directory containing imagery")
 misc_args.add_argument("--val_records_name",
                       type = str,
-                      default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/val_records_epoch{epoch} (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ").txt",
+                      default = "/sciclone/home20/hmbaier/tm/records/records (" + now + ")/val_records_epoch{epoch} (" + now + ").txt",
                       help = "Full path to directory containing imagery")
 misc_args.add_argument("--use_rpc",
                       type = bool,
@@ -138,15 +130,15 @@ misc_args.add_argument("--find_unused_parameters",
                       help = "Whether to use find unused parameters in DDP model initialization.")
 misc_args.add_argument("--records_dir",
                       type = str,
-                      default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/",
+                      default = "/sciclone/home20/hmbaier/tm/records/records (" + now + ")/",
                       help = "Path to save epoch records too")
 misc_args.add_argument("--epochs_dir",
                       type = str,
-                      default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/epochs/",
+                      default = "/sciclone/home20/hmbaier/tm/records/records (" + now + ")/epochs/",
                       help = "Path to save epoch records too")
 misc_args.add_argument("--models_dir",
                       type = str,
-                      default = "/sciclone/home20/hmbaier/tm/records/records (" + str(date.today()) + ", " + str(datetime.strptime(now.strftime("%H:%M"), "%H:%M").strftime("%I:%M %p")) + ")/models/",
+                      default = "/sciclone/home20/hmbaier/tm/records/records (" + now + ")/models/",
                       help = "Path to save trained_models too")
 
 
