@@ -10,13 +10,10 @@ from resnet18 import *
 from utils import *
 
 
-
-
-
 if __name__  == "__main__":
     
     ######################################################
-    # Fake MPI
+    # MPI-esque
     ######################################################
     parser = argparse.ArgumentParser()
     parser.add_argument("rank", help="Country ISO")
@@ -32,8 +29,6 @@ if __name__  == "__main__":
     sd = load_extracter_state(weights)
     model.load_state_dict(sd)
 
-    print("done loading model!")
-
     ######################################################
     # Make list of dates for JSON
     ######################################################  
@@ -42,8 +37,6 @@ if __name__  == "__main__":
         for month in range(1, 13):
             dates.append(str(year) + "-" + str(month))
     
-    print("made list of dates!")
-
     ######################################################
     # Make list of munis and grab rank specific subset
     ######################################################  
@@ -52,8 +45,6 @@ if __name__  == "__main__":
     imagery_list = [imagery_dir + i for i in imagery_list if "484" in i]
     imagery_list = np.array_split(imagery_list, int(args.world_size))
     rank_munis = imagery_list[int(args.rank) - 1]
-
-    print("rank munis: ", rank_munis)
 
     output_dir = "/sciclone/geograd/heather_data/temporal_features/jsons/"
 
@@ -64,15 +55,12 @@ if __name__  == "__main__":
         data = ExtractLoader(muni = imname)
 
         features = {}
-
         for c, (im) in enumerate(data.imagery):
-
             im = im.permute(0,3,1,2)
-
             output = model(im)[0]
             features[dates[c]] = str(list(output.detach().numpy()))
 
-            print(c, output.shape)
-
         with open(output_dir + data.muni_name + ".json", "w") as f:
             json.dump(features, f)
+
+
