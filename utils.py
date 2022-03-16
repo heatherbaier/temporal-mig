@@ -36,6 +36,7 @@ def remote_method(method, rref, *args, **kwargs):
     args = [method, rref] + list(args)
     return rpc.rpc_sync(rref.owner(), _call_method, args=args, kwargs=kwargs)
 
+
 def get_evaluator(placeholder):
     """
     Returns a singleton evaluator to all trainer processes
@@ -47,6 +48,7 @@ def get_evaluator(placeholder):
             # construct it once
             evaluator = Evaluator()
         return evaluator
+
 
 # https://github.com/pytorch/examples/blob/master/imagenet/main.py
 class AverageMeter:
@@ -64,6 +66,7 @@ class AverageMeter:
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
+
 
 class Evaluator:
 
@@ -137,6 +140,7 @@ def sort_by_size(munis, imagery_dir):
     munis.reverse()
     return munis
 
+
 @record
 def sublist_creator(lst, n):
     """
@@ -151,6 +155,7 @@ def sublist_creator(lst, n):
         heapq.heappush(totals, (total + value, index))
     return lists
 
+
 @record
 def make_worker_list(files_lists, ppn):
     """
@@ -161,6 +166,7 @@ def make_worker_list(files_lists, ppn):
         for j in range(0, len(i)):
             workers.append(j + (ppn * c))
     return workers
+
 
 @record
 def reverse_size(files_lists, size_dict):
@@ -198,3 +204,23 @@ def organize_data(base_dir, ppn, nodes):
     image_list = reverse_size(files_lists, size_dict)
         
     return image_list, workers
+
+
+def load_extracter_state(state_dict):
+
+    r18 = models.resnet18()
+    r18.fc = torch.nn.Linear(512, 1)
+
+    key_transformation = {k:v for k,v in zip(state_dict.keys(), r18.state_dict().keys())}
+
+    new_state_dict = OrderedDict()
+
+    for key, value in state_dict.items():
+        if "fc." not in key:
+            new_key = key_transformation[key]
+            new_state_dict[new_key] = value
+
+    del r18, key_transformation, state_dict
+    gc.collect()
+
+    return new_state_dict

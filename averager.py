@@ -48,11 +48,17 @@ def run_averager(num_workers):
 
                 if "train" in r:
                     with open(epoch_folder + "/" + r, "r") as f:
-                        train_avg.append(float(f.read()))
-                        
+                        try:
+                            train_avg.append(float(f.read()))
+                        except:
+                            pass
+    
                 elif "val" in r:
                     with open(epoch_folder + "/" + r, "r") as f:
-                        val_avg.append(float(f.read()))                        
+                        try:
+                            val_avg.append(float(f.read()))                        
+                        except:
+                            pass
 
             with open(config.log_name, "a") as f:
                 f.write("Epoch: " + str(cur_epoch) + "  Training Accuracy: " + str(np.average(train_avg)) + "\n"  + "          Validation Accuracy: " + str(np.average(val_avg)) + "\n\n")
