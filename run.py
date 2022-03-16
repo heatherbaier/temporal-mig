@@ -6,6 +6,7 @@ from torchvision import models
 import datetime
 import argparse
 import os
+import gc
 
 from dataloader import *
 from averager import *
@@ -42,7 +43,7 @@ def main(rank, model_group, imagery_list, worker_map):
     ddp_model = DDP(model, process_group = model_group)
 
     criterion = torch.nn.L1Loss()
-    optimizer = torch.optim.Adam(ddp_model.parameters(), lr = 0.01)   
+    optimizer = torch.optim.Adam(ddp_model.parameters(), lr = config.lr)   
 
     with open(config.log_name, "a") as f:
         f.write(str('Done with model setup in rank: ') + str(rank) + "\n")
@@ -78,6 +79,8 @@ def main(rank, model_group, imagery_list, worker_map):
 
             loss.backward()
             optimizer.step()
+            optimizer.zero_grad()
+            
 
         mname = config.models_dir + "model_epoch" + str(epoch) + ".torch"
 
@@ -96,25 +99,32 @@ def main(rank, model_group, imagery_list, worker_map):
         # Valdate!
         ######################################################
 
-        model = load_ddp_state(ddp_model.state_dict())
+        weights = load_ddp_state(ddp_model.state_dict())
+        model.load_state_dict(weights)
+        model.eval()
 
-        for (input, target) in data.val_data:
+        del weights
+        gc.collect()
 
-            optimizer.zero_grad()
+        with torch.no_grad():
 
-            input = input.permute(0,3,1,2)
-            target = target.view(-1, 1)
+            for (input, target) in data.val_data:
 
-            output = model(input)
+                optimizer.zero_grad()
 
-            loss = criterion(output, target)
-            val_tracker.update(loss.item())
+                input = input.permute(0,3,1,2)
+                target = target.view(-1, 1)
 
-            # Currently no use_rpc option here yet!!
-            epoch_folder = os.path.join(config.records_dir, "epochs", str(epoch))
-            fname = f"{epoch_folder}/val_{str(rank)}.txt"
-            with open(fname, "w") as f:
-                f.write(str(val_tracker.avg))
+                output = model(input)
+
+                loss = criterion(output, target).item()
+                val_tracker.update(loss)
+
+                # Currently no use_rpc option here yet!!
+                epoch_folder = os.path.join(config.records_dir, "epochs", str(epoch))
+                fname = f"{epoch_folder}/val_{str(rank)}.txt"
+                with open(fname, "w") as f:
+                    f.write(str(val_tracker.avg))
 
 
 
@@ -154,7 +164,7 @@ if __name__ == "__main__":
     ###########################################################################
     # Get the sorted imagery list and make the worker -> imagery list index map
     ###########################################################################
-    imagery_list, workers = organize_data(config.imagery_dir, args.ppn, args.nodes)
+    imagery_list, workers = organize_data(config.imagery_dir, int(args.ppn), int(args.nodes))
     worker_map = {w:i for w,i in zip(workers, [i for i in range(len(workers))])}
 
 
@@ -186,7 +196,7 @@ if __name__ == "__main__":
     last_rank = world_size - 1
 
     if dist.get_rank() in workers:
-        main(rank. model_group, imagery_list, worker_map)
+        main(rank, model_group, imagery_list, worker_map)
 
     elif dist.get_rank() == last_rank:
         run_averager(len(workers))

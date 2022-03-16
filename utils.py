@@ -11,6 +11,7 @@ import torch.nn as nn
 import torch
 import heapq
 import os
+import gc
 
 from dataloader import *
 
@@ -124,9 +125,10 @@ def load_ddp_state(state_dict):
         new_key = key_transformation[key]
         new_state_dict[new_key] = value
 
-    r18.load_state_dict(new_state_dict)
+    del r18, key_transformation, state_dict
+    gc.collect()
 
-    return 
+    return new_state_dict
     
 
 @record
