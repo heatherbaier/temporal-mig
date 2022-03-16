@@ -50,9 +50,12 @@ def main(rank, model_group, imagery_list, worker_map):
 
     model_group.barrier()
 
+    train_tracker, val_tracker = AverageMeter(), AverageMeter()
+
     for epoch in range(0, config.epochs):
 
-        train_tracker, val_tracker = AverageMeter(), AverageMeter()
+        train_tracker.reset()
+        val_tracker.reset()
 
         ######################################################
         # Train!
@@ -125,6 +128,9 @@ def main(rank, model_group, imagery_list, worker_map):
                 fname = f"{epoch_folder}/val_{str(rank)}.txt"
                 with open(fname, "w") as f:
                     f.write(str(val_tracker.avg))
+
+
+    
 
 
 

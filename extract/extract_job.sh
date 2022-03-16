@@ -10,5 +10,5 @@ module load anaconda3/2021.05
 unsetenv PYTHONPATH
 conda activate gee
 
-python3 /sciclone/home20/hmbaier/tm/extract_features.py $RANK $WS
+python3 /sciclone/home20/hmbaier/tm/extract/extract_features.py $RANK $WS
 

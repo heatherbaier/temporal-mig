@@ -57,6 +57,7 @@ class ExtractLoader():
         ims, migs = ds["ims"], ds["migrants"]
 
         self.imagery = torch.tensor(np.array(ims), dtype = torch.float32).split(1)
+        self.migs = torch.tensor(np.array(migs), dtype = torch.float32).split(1)
 
         # with open(config.log_name, "a") as f:
         #     f.write(str(self.rank) + "  NUM TRAIN: " + str(len(self.x_train)) + "  NUM VAL: " + str(len(self.x_val)) + "\n")

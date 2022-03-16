@@ -5,7 +5,7 @@ import torch
 import json
 import gc
 
-from dataloader import *
+from extractloader import *
 from resnet18 import *
 from utils import *
 
@@ -55,10 +55,10 @@ if __name__  == "__main__":
         data = ExtractLoader(muni = imname)
 
         features = {}
-        for c, (im) in enumerate(data.imagery):
+        for c, (im, migs) in enumerate(zip(data.imagery, data.migs)):
             im = im.permute(0,3,1,2)
             output = model(im)[0]
-            features[dates[c]] = str(list(output.detach().numpy()))
+            features[dates[c]] = {"migrants": str(migs.item()), "features: ": str(list(output.detach().numpy()))}
 
         with open(output_dir + data.muni_name + ".json", "w") as f:
             json.dump(features, f)
