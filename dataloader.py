@@ -21,8 +21,6 @@ class Dataloader():
     def __init__(self, muni, imagery_dir, rank):
 
         self.muni = muni
-        self.imagery_dir = imagery_dir
-        self.train_data, self.val_data = [], []
         self.rank = rank
         self.split = config.tv_split
         self.num_train = int(72 * self.split)
@@ -34,8 +32,12 @@ class Dataloader():
 
         ims, migs = ds["ims"], ds["migrants"]
 
-        self.train_data.append((torch.tensor(np.array(ims[0:self.num_train]), dtype = torch.float32), torch.tensor(np.array(migs[0:self.num_train]), dtype = torch.float32)))
-        self.val_data.append((torch.tensor(np.array(ims[self.num_train:]), dtype = torch.float32), torch.tensor(np.array(migs[self.num_train:]), dtype = torch.float32)))
+        self.x_train = torch.tensor(np.array(ims[0:self.num_train]), dtype = torch.float32).split(config.batch_size)
+        self.y_train = torch.tensor(np.array(migs[0:self.num_train]), dtype = torch.float32).split(config.batch_size)
+        self.x_val = torch.tensor(np.array(ims[self.num_train:]), dtype = torch.float32).split(config.batch_size)
+        self.y_val = torch.tensor(np.array(migs[self.num_train:]), dtype = torch.float32).split(config.batch_size)
 
         with open(config.log_name, "a") as f:
-            f.write(str(self.rank) + "  NUM TRAIN: " + str(self.train_data[0][0].shape) + "  NUM VAL: " + str(self.val_data[0][0].shape) + "\n")
+            f.write(str(self.rank) + "  NUM TRAIN: " + str(len(self.x_train)) + "  NUM VAL: " + str(len(self.x_val)) + "\n")
+
+

@@ -28,6 +28,14 @@ training_args.add_argument("--lr",
                            type = float, 
                            default = .0001, 
                            help = "Learning Rate")
+training_args.add_argument("--batch_size", 
+                           type = float, 
+                           default = 4,
+                           help = "Batch Size")
+training_args.add_argument("--epochs", 
+                           type = float, 
+                           default = 25,
+                           help = "Batch Size")
 
 
 data_args = add_argument_group("Data Arguments")

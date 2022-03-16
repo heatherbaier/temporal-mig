@@ -57,7 +57,7 @@ def main(rank, model_group, imagery_list, worker_map):
         ######################################################
         # Train!
         ######################################################
-        for (input, target) in data.train_data:
+        for (input, target) in zip(data.x_train, data.y_train):
 
             optimizer.zero_grad()
 
@@ -108,7 +108,7 @@ def main(rank, model_group, imagery_list, worker_map):
 
         with torch.no_grad():
 
-            for (input, target) in data.val_data:
+            for (input, target) in zip(data.x_val, data.y_val):
 
                 optimizer.zero_grad()
 
@@ -132,6 +132,8 @@ if __name__ == "__main__":
 
     os.environ['TP_SOCKET_IFNAME'] = "ib0"
     os.environ['GLOO_SOCKET_IFNAME'] = "ib0"
+
+    print("hello!!")
 
 
     ###########################################################################
@@ -180,7 +182,7 @@ if __name__ == "__main__":
 
 
     ###########################################################################
-    # Initialize RPC and the evaluator on all ranks (is using RPC)
+    # Initialize RPC and the evaluator on all ranks (if using RPC)
     ###########################################################################
     if config.use_rpc:
 
@@ -208,6 +210,3 @@ if __name__ == "__main__":
     """ whoop whoop """
     if config.use_rpc:
         rpc.shutdown()
-
-
-    

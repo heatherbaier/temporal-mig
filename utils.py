@@ -1,13 +1,9 @@
 from torch.distributed.elastic.multiprocessing.errors import record
-from torch.nn.parallel import DistributedDataParallel as DDP
 from collections import OrderedDict
 import torch.distributed.rpc as rpc
-import torch.multiprocessing as mp
 import torch.distributed as dist
 from torchvision import models
-import torch.optim as optim
 from threading import Lock
-import torch.nn as nn
 import torch
 import heapq
 import os
