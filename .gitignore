@@ -1,5 +1,14 @@
 records
 logs
 __pycache__
+keep
 
 log.txt
+
+# Exclude any job output files and IP & date files
+*.o*
+*.txt
+
+# Ignore scratch files
+a.py
+b.py

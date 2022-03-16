@@ -1,10 +1,11 @@
 # temporal-mig
 
-### Training
-To train temporal model, run the command:
-```./run.sh X``` with X beign the number of nodes to train across
-
-
 ### To make netCDF's
 To make a singular netCDF file for each municipality, run the command:
-```./ncdf_launch.sh X``` with X being the number of nodes to distribute across
+```./ncdf_launch.sh <NUM_NODES>```
+
+### Training
+To train feature extraction, run the command:
+```./run.sh <NUM_NODES> <SUBCLUSTER_NAME> <NUM_PROC_PER_NODE>```
+
+
