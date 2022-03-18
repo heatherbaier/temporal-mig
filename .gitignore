@@ -1,7 +1,11 @@
+
 records
 logs
 __pycache__
 keep
+
+*ipynb*
+
 
 log.txt
 

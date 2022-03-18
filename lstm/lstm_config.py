@@ -15,8 +15,8 @@ def add_argument_group(name):
     return arg
 
 
-with open("/sciclone/home20/hmbaier/tm/lstm/date.txt", "r") as f:
-    now = f.read().strip("\n")
+# with open("/sciclone/home20/hmbaier/tm/lstm/date.txt", "r") as f:
+#     now = f.read().strip("\n")
 
 
 training_args = add_argument_group("Training Arguments")
@@ -45,31 +45,31 @@ data_args.add_argument("--features_dir",
                       help = "Full path to directory containing extracted temporal imagery features")
 
 
-misc_args = add_argument_group("Miscellaneous Arguments")
-misc_args.add_argument("--log_name",
-                      type = str,
-                      default = "/sciclone/home20/hmbaier/tm/lstm/records/records (" + now + ")/log (" + now + ").txt",
-                      help = "Full path to directory containing imagery")
-misc_args.add_argument("--use_rpc",
-                      type = bool,
-                      default = False,
-                      help = "Whether to use RPC to communicate training statistics.")
-misc_args.add_argument("--find_unused_parameters",
-                      type = bool,
-                      default = False,
-                      help = "Whether to use find unused parameters in DDP model initialization.")
-misc_args.add_argument("--records_dir",
-                      type = str,
-                      default = "/sciclone/home20/hmbaier/tm/lstm/records/records (" + now + ")/",
-                      help = "Path to save epoch records too")
-misc_args.add_argument("--epochs_dir",
-                      type = str,
-                      default = "/sciclone/home20/hmbaier/tm/lstm/records/records (" + now + ")/epochs/",
-                      help = "Path to save epoch records too")
-misc_args.add_argument("--models_dir",
-                      type = str,
-                      default = "/sciclone/home20/hmbaier/tm/lstm/records/records (" + now + ")/models/",
-                      help = "Path to save trained_models too")
+# misc_args = add_argument_group("Miscellaneous Arguments")
+# misc_args.add_argument("--log_name",
+#                       type = str,
+#                       default = "/sciclone/home20/hmbaier/tm/lstm/records/records (" + now + ")/log (" + now + ").txt",
+#                       help = "Full path to directory containing imagery")
+# misc_args.add_argument("--use_rpc",
+#                       type = bool,
+#                       default = False,
+#                       help = "Whether to use RPC to communicate training statistics.")
+# misc_args.add_argument("--find_unused_parameters",
+#                       type = bool,
+#                       default = False,
+#                       help = "Whether to use find unused parameters in DDP model initialization.")
+# misc_args.add_argument("--records_dir",
+#                       type = str,
+#                       default = "/sciclone/home20/hmbaier/tm/lstm/records/records (" + now + ")/",
+#                       help = "Path to save epoch records too")
+# misc_args.add_argument("--epochs_dir",
+#                       type = str,
+#                       default = "/sciclone/home20/hmbaier/tm/lstm/records/records (" + now + ")/epochs/",
+#                       help = "Path to save epoch records too")
+# misc_args.add_argument("--models_dir",
+#                       type = str,
+#                       default = "/sciclone/home20/hmbaier/tm/lstm/records/records (" + now + ")/models/",
+#                       help = "Path to save trained_models too")
 
 
 def get_config():

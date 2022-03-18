@@ -13,18 +13,22 @@ class LSTM(torch.nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
 
         super(LSTM, self).__init__()
+        
         self.hidden_size = hidden_size
         
         self.lstm = torch.nn.LSTM(input_size, hidden_size)
         
         self.linear = torch.nn.Linear(hidden_size, output_size)
         
-    def forward(self, x, hidden = None):
+#         print(self.lstm.device)
+#         print(self.linear.device)
+        
+    def forward(self, x, rank, hidden = None):
 
         if hidden == None:
 
-            self.hidden = (torch.zeros(1,1,self.hidden_size),
-                           torch.zeros(1,1,self.hidden_size))
+            self.hidden = (torch.zeros(1,1,self.hidden_size).to(rank),
+                           torch.zeros(1,1,self.hidden_size).to(rank))
 
         else:
 
