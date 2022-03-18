@@ -80,29 +80,46 @@ if __name__ == "__main__":
     features = [torch.tensor([ast.literal_eval(i["features: "])]) for i in features]
 
     num_steps = 12
-    x_train, y_train = [], []
+    x, y = [], []
     for i in range(len(features)):
-        x_train.append(torch.cat(features[i:i+num_steps]))
-        y_train.append(torch.cat(migs[i:i+num_steps]))
+        x.append(torch.cat(features[i:i+num_steps]))
+        y.append(torch.cat(migs[i:i+num_steps]))
 
 
-    train_tracker = AverageMeter()
+    x = torch.cat([i.unsqueeze(0) for i in x if i.shape[0] == 12])
+    # y = [i for i in y if i.shape[0] == 12]
 
-    for epoch in range(0, 100):
+    train_num = int(x.shape[0] * .75)
 
-        train_tracker.reset()
+    print("Train num: ", train_num)
 
-        for input, target in zip(x_train, y_train):
+    import random
 
-            if input.shape[0] == 12:
+    train_indices = random.sample(range(x.shape[0]), train_num)
+    val_indices = [i for i in range(x.shape[0]) if i not in train_indices]
+
+    x_train = torch.index_select(x, 0, torch.tensor(train_indices))
+    x_val = torch.index_select(x, 0, torch.tensor(val_indices))
+
+    print(x_train.shape, x_val.shape)
+
+    # train_tracker = AverageMeter()
+
+    # for epoch in range(0, 100):
+
+    #     train_tracker.reset()
+
+    #     for input, target in zip(x_train, y_train):
+
+    #         if input.shape[0] == 12:
             
-                output = model(input)
-                loss = criterion(target, output)
+    #             output = model(input)
+    #             loss = criterion(target, output)
 
-                train_tracker.update(loss.item())
+    #             train_tracker.update(loss.item())
 
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+    #             optimizer.zero_grad()
+    #             loss.backward()
+    #             optimizer.step()
 
-        print(train_tracker.avg)
+    #     print(train_tracker.avg)

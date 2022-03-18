@@ -24,7 +24,7 @@ if __name__  == "__main__":
     # Load in model and saved weights
     ######################################################   
     model = r18(models.resnet18())
-    model_path = "/sciclone/home20/hmbaier/tm/records/records (2022-03-16, 13:22:22)/models/model_epoch0.torch"
+    model_path = "/sciclone/home20/hmbaier/tm/records/records (2022-03-16, 13:22:22)/models/model_epoch1.torch"
     weights = torch.load(model_path)["model_state_dict"]
     sd = load_extracter_state(weights)
     model.load_state_dict(sd)
@@ -62,5 +62,3 @@ if __name__  == "__main__":
 
         with open(output_dir + data.muni_name + ".json", "w") as f:
             json.dump(features, f)
-
-
